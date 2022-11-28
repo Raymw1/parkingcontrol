@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,6 +63,24 @@ public class ParkingSpotController {
 		BeanUtils.copyProperties(parkingSpotDto, parkingSpotModel);
 		parkingSpotModel.setRegistrationDate(LocalDateTime.now(ZoneId.of("UTC")));
 		return ResponseEntity.status(HttpStatus.CREATED).body(parkingSpotService.save(parkingSpotModel));
+	}
+
+	@PutMapping("/{id}")
+	public ResponseEntity<Object> updateParkingSpot(
+		@PathVariable(value = "id") UUID id,
+		@RequestBody @Valid ParkingSpotDto parkingSpotDto
+	) {
+		Optional<ParkingSpot> parkingSpotOptional = parkingSpotService.findById(id);
+		if (!parkingSpotOptional.isPresent()) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Parking Spot not found!");
+		}
+		
+		var parkingSpot = new ParkingSpot();
+		BeanUtils.copyProperties(parkingSpotDto, parkingSpot);
+		parkingSpot.setId(parkingSpotOptional.get().getId());
+		parkingSpot.setRegistrationDate(parkingSpotOptional.get().getRegistrationDate());
+		
+		return ResponseEntity.status(HttpStatus.OK).body(parkingSpotService.save(parkingSpot));
 	}
 	
 	@DeleteMapping("/{id}")
